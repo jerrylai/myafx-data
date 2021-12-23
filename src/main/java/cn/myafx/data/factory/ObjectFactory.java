@@ -42,7 +42,7 @@ public interface ObjectFactory {
    *          Object type
    * @return the t
    */
-  <T> T create(Class<T> type)throws Exception;
+  <T> T create(Class<T> type) throws Exception;
 
   /**
    * Creates a new object with the specified constructor and params.

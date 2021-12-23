@@ -71,10 +71,24 @@ public abstract class BaseTypeHandler<T> extends TypeReference<T> implements Typ
    *           the SQL exception
    */
   public abstract T getNullableResult(ResultSet rs, String columnName) throws Exception;
-
+/**
+ * 
+ * @param rs the rs
+ * @param columnIndex  Column ndex 
+ * @return the nullable result
+ * @throws Exception the exception
+ */
   public abstract T getNullableResult(ResultSet rs, int columnIndex) throws Exception;
-
+/**
+ * 
+ * @param cs the rs
+ * @param columnIndex Column ndex 
+ * @return the nullable result
+ * @throws Exception the exception
+ */
   public abstract T getNullableResult(CallableStatement cs, int columnIndex) throws Exception;
-
+  /**
+   * 
+   */
   public abstract void setParameter(PreparedStatement ps, int i, Object parameter) throws Exception;
 }

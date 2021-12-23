@@ -73,6 +73,9 @@ public class ArrayTypeHandler extends BaseTypeHandler<Object> {
     STANDARD_MAPPING.put(URL.class, JdbcType.DATALINK.name());
   }
 
+  /**
+   * ArrayTypeHandler
+   */
   public ArrayTypeHandler() {
     super();
   }
