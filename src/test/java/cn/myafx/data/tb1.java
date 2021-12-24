@@ -1,4 +1,4 @@
-package afx.data;
+package cn.myafx.data;
 
 // import java.util.Date;
 
