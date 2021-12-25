@@ -18,7 +18,6 @@ package cn.myafx.data.type;
 import java.io.InputStream;
 import java.io.Reader;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
