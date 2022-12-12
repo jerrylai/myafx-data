@@ -53,7 +53,7 @@ public final class TypeHandlerRegistry {
 
   private static final Map<JdbcType, TypeHandler<?>> NULL_TYPE_HANDLER_MAP = Collections.emptyMap();
 
-  private Class<? extends TypeHandler> defaultEnumTypeHandler = EnumTypeHandler.class;
+  private Class<?> defaultEnumTypeHandler = EnumTypeHandler.class;
 
   /**
    * The constructor that pass the MyBatis configuration.
@@ -159,10 +159,11 @@ public final class TypeHandlerRegistry {
   }
 
   /**
-   * setDefaultEnumTypeHandler 
+   * setDefaultEnumTypeHandler
+   * 
    * @param typeHandler TypeHandler
    */
-  public void setDefaultEnumTypeHandler(Class<? extends TypeHandler> typeHandler) {
+  public void setDefaultEnumTypeHandler(Class<?> typeHandler) {
     this.defaultEnumTypeHandler = typeHandler;
   }
 
@@ -246,7 +247,8 @@ public final class TypeHandlerRegistry {
     return jdbcHandlerMap;
   }
 
-  private Map<JdbcType, TypeHandler<?>> getJdbcHandlerMapForEnumInterfaces(Class<?> clazz, Class<?> enumClazz) throws TypeException {
+  private Map<JdbcType, TypeHandler<?>> getJdbcHandlerMapForEnumInterfaces(Class<?> clazz, Class<?> enumClazz)
+      throws TypeException {
     for (Class<?> iface : clazz.getInterfaces()) {
       Map<JdbcType, TypeHandler<?>> jdbcHandlerMap = typeHandlerMap.get(iface);
       if (jdbcHandlerMap == null) {
@@ -318,7 +320,8 @@ public final class TypeHandlerRegistry {
         register(typeReference.getRawType(), typeHandler);
         mappedTypeFound = true;
       } catch (Throwable t) {
-        // maybe users define the TypeReference with a different type and are not assignable, so just ignore it
+        // maybe users define the TypeReference with a different type and are not
+        // assignable, so just ignore it
       }
     }
     if (!mappedTypeFound) {

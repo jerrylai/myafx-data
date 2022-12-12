@@ -30,12 +30,13 @@ public interface TypeHandler<T> {
    * Gets the result.
    *
    * @param rs
-   *          the rs
+   *                   the rs
    * @param columnName
-   *          Column name, when configuration <code>useColumnLabel</code> is <code>false</code>
+   *                   Column name, when configuration <code>useColumnLabel</code>
+   *                   is <code>false</code>
    * @return the result
    * @throws Exception
-   *           the SQL exception
+   *                   the SQL exception
    */
   T getResult(ResultSet rs, String columnName) throws Exception;
 

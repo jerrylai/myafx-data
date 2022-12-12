@@ -22,8 +22,10 @@ import java.sql.ResultSet;
 /**
  * The base {@link TypeHandler} for references a generic type.
  * <p>
- * Important: Since 3.5.0, This class never call the {@link ResultSet#wasNull()} and
- * {@link CallableStatement#wasNull()} method for handling the SQL {@code NULL} value.
+ * Important: Since 3.5.0, This class never call the {@link ResultSet#wasNull()}
+ * and
+ * {@link CallableStatement#wasNull()} method for handling the SQL {@code NULL}
+ * value.
  * In other words, {@code null} value handling should be performed on subclass.
  * </p>
  *
@@ -59,34 +61,39 @@ public abstract class BaseTypeHandler<T> extends TypeReference<T> implements Typ
       throw new Exception("Error attempting to get column #" + columnIndex + " from callable statement.  Cause: " + e);
     }
   }
+
   /**
    * Gets the nullable result.
    *
    * @param rs
-   *          the rs
+   *                   the rs
    * @param columnName
-   *          Column name, when configuration <code>useColumnLabel</code> is <code>false</code>
+   *                   Column name, when configuration <code>useColumnLabel</code>
+   *                   is <code>false</code>
    * @return the nullable result
    * @throws Exception
-   *           the SQL exception
+   *                   the SQL exception
    */
   public abstract T getNullableResult(ResultSet rs, String columnName) throws Exception;
-/**
- * 
- * @param rs the rs
- * @param columnIndex  Column ndex 
- * @return the nullable result
- * @throws Exception the exception
- */
+
+  /**
+   * 
+   * @param rs          the rs
+   * @param columnIndex Column ndex
+   * @return the nullable result
+   * @throws Exception the exception
+   */
   public abstract T getNullableResult(ResultSet rs, int columnIndex) throws Exception;
-/**
- * 
- * @param cs the rs
- * @param columnIndex Column ndex 
- * @return the nullable result
- * @throws Exception the exception
- */
+
+  /**
+   * 
+   * @param cs          the rs
+   * @param columnIndex Column ndex
+   * @return the nullable result
+   * @throws Exception the exception
+   */
   public abstract T getNullableResult(CallableStatement cs, int columnIndex) throws Exception;
+
   /**
    * 
    */

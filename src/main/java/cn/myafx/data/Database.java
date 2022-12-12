@@ -17,8 +17,8 @@ import cn.myafx.data.factory.ObjectFactory;
 import cn.myafx.data.type.TypeHandler;
 import cn.myafx.data.type.TypeHandlerRegistry;
 
-public abstract class Database implements IDatabase{
-    
+public abstract class Database implements IDatabase {
+
     private Connection connection = null;
     private Boolean is_tran = false;
     private Boolean is_close = true;
@@ -69,65 +69,81 @@ public abstract class Database implements IDatabase{
         baseTypeList.add(java.sql.Clob.class);
         baseTypeList.add(java.sql.NClob.class);
     }
+
     /**
      * is close
+     * 
      * @return boolean
      */
     @Override
-    public boolean isClose(){
+    public boolean isClose() {
         return this.is_close;
     }
+
     /**
      * is transaction
+     * 
      * @return boolean
      */
     @Override
-    public boolean isTransaction(){
+    public boolean isTransaction() {
         return this.is_tran;
     }
+
     /**
      * getConnection
+     * 
      * @return Connection
      * @throws Exception
      */
     protected abstract Connection getConnection() throws Exception;
+
     /**
      * encodeColumn
+     * 
      * @param column name
      * @return mysql: `column`, ms sqlserver: [column]
      */
     protected abstract String encodeColumn(String column);
+
     /**
      * open
+     * 
      * @throws Exception
      */
     @Override
-    public void open() throws Exception{
-        if(this.is_close){
+    public void open() throws Exception {
+        if (this.is_close) {
             this.connection = this.getConnection();
             is_close = false;
         }
     }
+
     /**
      * begin transaction
+     * 
      * @throws Exception
      */
     @Override
     public void beginTransaction() throws Exception {
         this.beginTransaction(IsolationLevel.None);
     }
+
     /**
      * begin transaction
+     * 
      * @param level IsolationLevel
      * @throws Exception
      */
     @Override
     public void beginTransaction(IsolationLevel level) throws Exception {
-        if(this.is_tran) throw new Exception("repeat beginTransaction!");
+        if (this.is_tran)
+            throw new Exception("repeat beginTransaction!");
         this.open();
-        if(this.connection == null) throw new Exception("not open!");
+        if (this.connection == null)
+            throw new Exception("not open!");
         this.connection.setAutoCommit(false);
-        switch(level){
+        switch (level) {
             case None:
                 this.connection.setTransactionIsolation(Connection.TRANSACTION_NONE);
                 break;
@@ -148,132 +164,166 @@ public abstract class Database implements IDatabase{
         }
         this.is_tran = true;
     }
+
     /**
      * commit
+     * 
      * @throws Exception
      */
     @Override
-    public void commit() throws Exception{
-        if(this.is_tran){
+    public void commit() throws Exception {
+        if (this.is_tran) {
             this.connection.commit();
             this.is_tran = false;
         }
     }
+
     /**
      * rollback
+     * 
      * @throws Exception
      */
     @Override
-    public void rollback() throws Exception{
-        if(this.is_tran){
+    public void rollback() throws Exception {
+        if (this.is_tran) {
             this.connection.rollback();
             this.is_tran = false;
         }
     }
+
     /**
      * close
      */
     @Override
     public void close() throws Exception {
-        if(!is_close) {
-           try{ this.rollback();} catch(Exception ex){}
-           try{this.connection.close();} catch(Exception ex){}
-           this.connection = null;
-           this.is_close = true;
+        if (!is_close) {
+            try {
+                this.rollback();
+            } catch (Exception ex) {
+            }
+            try {
+                this.connection.close();
+            } catch (Exception ex) {
+            }
+            this.connection = null;
+            this.is_close = true;
         }
     }
+
     /**
      * get T Default
+     * 
      * @param clazz T
      * @return default value
      */
     private Object getDefault(Class<?> clazz) {
         Object obj = null;
 
-        if(clazz.isPrimitive()) {
-            if(clazz == boolean.class) obj = false;
-            else if(clazz == char.class) obj = '\0';
-            else if(clazz == byte.class) obj = (byte)0;
-            else if(clazz == short.class) obj = (short)0;
-            else if(clazz == int.class) obj = 0;
-            else if(clazz == long.class) obj = 0l;
-            else if(clazz == float.class) obj = 0f;
-            else if(clazz == double.class) obj = 0d;
+        if (clazz.isPrimitive()) {
+            if (clazz == boolean.class)
+                obj = false;
+            else if (clazz == char.class)
+                obj = '\0';
+            else if (clazz == byte.class)
+                obj = (byte) 0;
+            else if (clazz == short.class)
+                obj = (short) 0;
+            else if (clazz == int.class)
+                obj = 0;
+            else if (clazz == long.class)
+                obj = 0l;
+            else if (clazz == float.class)
+                obj = 0f;
+            else if (clazz == double.class)
+                obj = 0d;
         }
-        
+
         return obj;
     }
+
     /**
      * checkModel
+     * 
      * @param clazz model.class
      * @throws Exception
      */
     private void checkModel(Class<?> clazz) throws Exception {
-        if(clazz == null) throw new Exception("T class is null!");
+        if (clazz == null)
+            throw new Exception("T class is null!");
 
-        if(baseTypeList.contains(clazz)) return;
+        if (baseTypeList.contains(clazz))
+            return;
 
-        if(clazz.isArray() || clazz.isEnum() || clazz.isInterface() || clazz.isAnonymousClass() || clazz.isAnnotation()
-            || (clazz.getModifiers() & NOT_MODEL) > 0)
+        if (clazz.isArray() || clazz.isEnum() || clazz.isInterface() || clazz.isAnonymousClass() || clazz.isAnnotation()
+                || (clazz.getModifiers() & NOT_MODEL) > 0)
             throw new Exception("T(" + clazz.getSimpleName() + ") class is error!");
     }
+
     /**
      * getFieldMap
+     * 
      * @param clazz model.class
      * @return Map&lt;String, Field&gt;
      * @throws Exception
      */
     private Map<String, Field> getFieldMap(Class<?> clazz) throws Exception {
         var arr = clazz.getDeclaredFields();
-		Map<String, Field> fieldMap = new LinkedHashMap<>();
-        for(Field f: arr){
+        Map<String, Field> fieldMap = new LinkedHashMap<>();
+        for (Field f : arr) {
             var modifiers = f.getModifiers();
-            if((modifiers & NOT_FIELD) == 0){
+            if ((modifiers & NOT_FIELD) == 0) {
                 fieldMap.put(f.getName(), f);
-                if(!Modifier.isPublic(modifiers))
+                if (!Modifier.isPublic(modifiers))
                     f.setAccessible(true);
             }
-		}
+        }
 
-        if(fieldMap.size() == 0) throw new Exception("clazz("+clazz.getName()+") is error!");
+        if (fieldMap.size() == 0)
+            throw new Exception("clazz(" + clazz.getName() + ") is error!");
 
         return fieldMap;
     }
+
     /**
      * setValue
-     * @param m model
-     * @param fieldMap model field
+     * 
+     * @param m         model
+     * @param fieldMap  model field
      * @param resultSet ResultSet
-     * @param metaData ResultSetMetaData
+     * @param metaData  ResultSetMetaData
      * @param handerMap get column value Map
      * @throws Exception
      */
-    private void setValue(Object m, Map<String, Field> fieldMap, ResultSet resultSet, ResultSetMetaData metaData, Map<String, TypeHandler<?>> handerMap) throws Exception {
+    private void setValue(Object m, Map<String, Field> fieldMap, ResultSet resultSet, ResultSetMetaData metaData,
+            Map<String, TypeHandler<?>> handerMap) throws Exception {
         var count = metaData.getColumnCount();
-        for(var i=0; i<count; i++){
-            var name = metaData.getColumnLabel(i+1);
-            if(fieldMap.containsKey(name)){
+        for (var i = 0; i < count; i++) {
+            var name = metaData.getColumnLabel(i + 1);
+            if (fieldMap.containsKey(name)) {
                 var field = fieldMap.get(name);
                 Object value = null;
                 TypeHandler<?> handler = null;
-                if(handerMap.containsKey(name)){
+                if (handerMap.containsKey(name)) {
                     handler = handerMap.get(name);
-                }
-                else{
+                } else {
                     var ft = field.getType();
                     handler = typeHandlerRegistry.getTypeHandler(ft);
                     handerMap.put(name, handler);
                 }
-                if(handler != null) value = handler.getResult(resultSet, i+1);
-                if(value != null) field.set(m, value);
+                if (handler != null)
+                    value = handler.getResult(resultSet, i + 1);
+                if (value != null)
+                    field.set(m, value);
             }
         }
     }
+
     /**
      * toListModel
-     * @param <T> Model
+     * 
+     * @param <T>       Model
      * @param resultSet ResultSet
-     * @param clazz Model.class
+     * @param clazz     Model.class
      * @return List
      * @throws Exception
      */
@@ -286,22 +336,20 @@ public abstract class Database implements IDatabase{
         Map<String, TypeHandler<?>> handerMap = null;
         ResultSetMetaData metaData = null;
         TypeHandler<?> handler = null;
-        if(isBaseType){
-             handler = typeHandlerRegistry.getTypeHandler(clazz);
-        }
-        else{
-            fieldMap =getFieldMap(clazz);
+        if (isBaseType) {
+            handler = typeHandlerRegistry.getTypeHandler(clazz);
+        } else {
+            fieldMap = getFieldMap(clazz);
             handerMap = new HashMap<>();
             metaData = resultSet.getMetaData();
-        } 
+        }
 
-        while(resultSet.next()){
-            if(isBaseType){
-                var m = (T)handler.getResult(resultSet, 1);
+        while (resultSet.next()) {
+            if (isBaseType) {
+                var m = (T) handler.getResult(resultSet, 1);
                 list.add(m);
-            }
-            else{
-                //var m = constructor.newInstance();
+            } else {
+                // var m = constructor.newInstance();
                 var m = objectFactory.create(clazz);
                 this.setValue(m, fieldMap, resultSet, metaData, handerMap);
                 list.add(m);
@@ -310,137 +358,140 @@ public abstract class Database implements IDatabase{
 
         return list;
     }
+
     /**
      * getParamInfo
-     * @param sql sql text
+     * 
+     * @param sql   sql text
      * @param param
      * @return SqlParamInfo
      * @throws Exception
      */
     @SuppressWarnings("unchecked")
-    private SqlParamInfo getParamInfo(String sql, Object[] param) throws Exception{
+    private SqlParamInfo getParamInfo(String sql, Object[] param) throws Exception {
         if (sql == null || sql.isEmpty()) {
             throw new Exception("sql is null!");
-          }
+        }
 
         SqlParamInfo result = new SqlParamInfo();
         result.sql = sql;
-        if(sql.indexOf('?') > 0) {
+        if (sql.indexOf('?') > 0) {
             result.param = param;
-        }
-        else {
+        } else {
             String openToken = "${";
             String closeToken = "}";
             var start = sql.indexOf(openToken);
-            if(start < 0){
+            if (start < 0) {
                 openToken = "#{";
                 start = sql.indexOf(openToken);
             }
 
-            if(start > 0){
-                if(param == null || param.length != 1) throw new Exception("parameter is error!");
+            if (start > 0) {
+                if (param == null || param.length != 1)
+                    throw new Exception("parameter is error!");
                 var o = param[0];
                 Integer paramtype = 0;
                 Map<String, Object> map = null;
                 Map<String, Field> fieldMap = null;
-                if(o instanceof Map<?, ?> omap) {
-                    map = (Map<String, Object>)omap;
-                    if(map != null && map.size() > 0) {
+                if (o instanceof Map<?, ?> omap) {
+                    map = (Map<String, Object>) omap;
+                    if (map != null && map.size() > 0) {
                         paramtype = 1;
                     }
-                }
-                else{
+                } else {
                     var t = o.getClass();
                     var fields = t.getDeclaredFields();
-                    if(fields.length > 0) {
+                    if (fields.length > 0) {
                         fieldMap = new HashMap<>(fields.length);
                         for (Field f : fields) {
                             var modifiers = f.getModifiers();
-                            if((modifiers & NOT_FIELD) == 0){
+                            if ((modifiers & NOT_FIELD) == 0) {
                                 fieldMap.put(f.getName(), f);
-                                if(!Modifier.isPublic(modifiers)) f.setAccessible(true);
+                                if (!Modifier.isPublic(modifiers))
+                                    f.setAccessible(true);
                             }
                         }
-                        if(fieldMap.size() > 0) paramtype = 2;
+                        if (fieldMap.size() > 0)
+                            paramtype = 2;
                     }
                 }
 
-                if(paramtype == 0) throw new Exception("parameter type is error!");
+                if (paramtype == 0)
+                    throw new Exception("parameter type is error!");
 
                 StringBuilder builder = new StringBuilder();
                 Integer appendStart = 0;
                 Integer offset = start + openToken.length();
                 Integer end = sql.indexOf(closeToken, offset);
                 List<Object> olist = new ArrayList<>();
-                while(start > 0 && end > start) {
+                while (start > 0 && end > start) {
                     var name = sql.substring(offset, end);
                     builder.append(sql.substring(appendStart, start));
                     builder.append("?");
-                    if(paramtype == 1){
-                        if(map.containsKey(name)){
+                    if (paramtype == 1) {
+                        if (map.containsKey(name)) {
                             olist.add(map.get(name));
+                        } else {
+                            throw new Exception("not find " + openToken + name + closeToken + " parameter!");
                         }
-                        else{
-                            throw new Exception("not find "+ openToken + name + closeToken +" parameter!");
-                        }
-                    }
-                    else{
+                    } else {
                         Object v = null;
-                        if(fieldMap.containsKey(name)){
+                        if (fieldMap.containsKey(name)) {
                             var field = fieldMap.get(name);
                             v = field.get(o);
-                        }
-                        else{
-                            throw new Exception("not find "+ openToken + name + closeToken +" parameter!");
+                        } else {
+                            throw new Exception("not find " + openToken + name + closeToken + " parameter!");
                         }
                         olist.add(v);
                     }
                     appendStart = end + closeToken.length();
                     start = sql.indexOf(openToken, appendStart);
-                    if(start < 0) break;
+                    if (start < 0)
+                        break;
                     offset = start + openToken.length();
                     end = sql.indexOf(closeToken, offset);
                 }
-                if(appendStart < sql.length()){
+                if (appendStart < sql.length()) {
                     builder.append(sql.substring(appendStart));
                 }
                 result.sql = builder.toString();
                 result.param = olist.toArray();
-                
+
             }
         }
 
         return result;
     }
+
     /**
      * execute sql
-     * @param sql update/delete/insert; param: ? or ${name} or #{name}
+     * 
+     * @param sql   update/delete/insert; param: ? or ${name} or #{name}
      * @param param update tb set name = ? where id = ? param is Object[];
-     * update tb set name = ${mame} where id = ${id} param is model or Map&lt;String, Object&gt;
+     *              update tb set name = ${mame} where id = ${id} param is model or
+     *              Map&lt;String, Object&gt;
      * @return int
      * @throws Exception
      */
     @Override
-    public int execute(String sql, Object... param) throws Exception{
+    public int execute(String sql, Object... param) throws Exception {
         int result = 0;
         this.open();
-        if(param == null || param.length == 0){
-            try(var statement = this.connection.createStatement()){
+        if (param == null || param.length == 0) {
+            try (var statement = this.connection.createStatement()) {
                 result = statement.executeUpdate(sql);
             }
-        }
-        else{
+        } else {
             var sqlparam = this.getParamInfo(sql, param);
-            try(var statement = this.connection.prepareStatement(sqlparam.sql)){
+            try (var statement = this.connection.prepareStatement(sqlparam.sql)) {
                 for (var i = 0; i < sqlparam.param.length; i++) {
                     var o = sqlparam.param[i];
-                    if(o != null){
+                    if (o != null) {
                         var t = o.getClass();
                         var handler = typeHandlerRegistry.getTypeHandler(t);
-                        handler.setParameter(statement, i+1, o);
-                    }
-                    else{
-                        statement.setNull(i+1, Types.VARCHAR);
+                        handler.setParameter(statement, i + 1, o);
+                    } else {
+                        statement.setNull(i + 1, Types.VARCHAR);
                     }
                 }
                 result = statement.executeUpdate();
@@ -452,9 +503,10 @@ public abstract class Database implements IDatabase{
 
     /**
      * toModel
-     * @param <T> Model
+     * 
+     * @param <T>       Model
      * @param resultSet ResultSet
-     * @param clazz Model.class
+     * @param clazz     Model.class
      * @return Model
      * @throws Exception
      */
@@ -466,38 +518,37 @@ public abstract class Database implements IDatabase{
         Map<String, TypeHandler<?>> handerMap = null;
         ResultSetMetaData metaData = null;
         TypeHandler<?> handler = null;
-        if(isBaseType){
-             handler = typeHandlerRegistry.getTypeHandler(clazz);
-        }
-        else{
+        if (isBaseType) {
+            handler = typeHandlerRegistry.getTypeHandler(clazz);
+        } else {
             fieldMap = getFieldMap(clazz);
             handerMap = new HashMap<>();
             metaData = resultSet.getMetaData();
-        } 
+        }
 
-		if(resultSet.next()){
-            if(isBaseType){
-                m = (T)handler.getResult(resultSet, 1);
-            }
-            else{
+        if (resultSet.next()) {
+            if (isBaseType) {
+                m = (T) handler.getResult(resultSet, 1);
+            } else {
                 m = objectFactory.create(clazz);
                 this.setValue(m, fieldMap, resultSet, metaData, handerMap);
             }
-        }
-        else{
-            m = (T)getDefault(clazz);
+        } else {
+            m = (T) getDefault(clazz);
         }
 
-       return m;
+        return m;
     }
 
     /**
      * query first model
-     * @param <T> model
-     * @param sql select sql; param: ? or ${name} or #{name}
+     * 
+     * @param <T>   model
+     * @param sql   select sql; param: ? or ${name} or #{name}
      * @param clazz T.class
      * @param param select id, name from tb where id = ? param is Object[];
-     * select id, name from tb where id = ${id} param is model or Map&lt;String, Object&gt;
+     *              select id, name from tb where id = ${id} param is model or
+     *              Map&lt;String, Object&gt;
      * @return first model
      * @throws Exception
      */
@@ -505,42 +556,43 @@ public abstract class Database implements IDatabase{
     public <T> T queryOne(String sql, Class<T> clazz, Object... param) throws Exception {
         this.checkModel(clazz);
         this.open();
-        if(param == null || param.length == 0){
-            try(var statement = this.connection.createStatement()){
-                try(var resultSet = statement.executeQuery(sql)){
+        if (param == null || param.length == 0) {
+            try (var statement = this.connection.createStatement()) {
+                try (var resultSet = statement.executeQuery(sql)) {
                     var m = this.toModel(resultSet, clazz);
                     return m;
                 }
             }
-        }
-        else{
+        } else {
             var sqlparam = this.getParamInfo(sql, param);
-            try(var statement = this.connection.prepareStatement(sqlparam.sql)){
+            try (var statement = this.connection.prepareStatement(sqlparam.sql)) {
                 for (var i = 0; i < sqlparam.param.length; i++) {
                     var o = sqlparam.param[i];
-                    if(o != null){
+                    if (o != null) {
                         var t = o.getClass();
                         var handler = typeHandlerRegistry.getTypeHandler(t);
-                        handler.setParameter(statement, i+1, o);
-                    }
-                    else{
-                        statement.setNull(i+1, Types.VARCHAR);
+                        handler.setParameter(statement, i + 1, o);
+                    } else {
+                        statement.setNull(i + 1, Types.VARCHAR);
                     }
                 }
-                try(var resultSet = statement.executeQuery()){
+                try (var resultSet = statement.executeQuery()) {
                     var m = this.toModel(resultSet, clazz);
                     return m;
                 }
             }
         }
     }
+
     /**
      * query List
-     * @param <T> model
-     * @param sql select sql; param: ? or ${name} or #{name}
+     * 
+     * @param <T>   model
+     * @param sql   select sql; param: ? or ${name} or #{name}
      * @param clazz T.class
      * @param param select id, name from tb where id = ? param is Object[];
-     * select id, name from tb where id = ${id} param is model or Map&lt;String, Object&gt;
+     *              select id, name from tb where id = ${id} param is model or
+     *              Map&lt;String, Object&gt;
      * @return List
      * @throws Exception
      */
@@ -549,28 +601,26 @@ public abstract class Database implements IDatabase{
         List<T> list = null;
         this.checkModel(clazz);
         this.open();
-        if(param == null || param.length == 0) {
-            try(var statement = this.connection.createStatement()){
-                try(var resultSet = statement.executeQuery(sql)){
+        if (param == null || param.length == 0) {
+            try (var statement = this.connection.createStatement()) {
+                try (var resultSet = statement.executeQuery(sql)) {
                     list = toListModel(resultSet, clazz);
                 }
             }
-        }
-        else{
+        } else {
             var sqlparam = this.getParamInfo(sql, param);
-            try(var statement = this.connection.prepareStatement(sqlparam.sql)){
+            try (var statement = this.connection.prepareStatement(sqlparam.sql)) {
                 for (var i = 0; i < sqlparam.param.length; i++) {
                     var o = sqlparam.param[i];
-                    if(o != null){
+                    if (o != null) {
                         var t = o.getClass();
                         var handler = typeHandlerRegistry.getTypeHandler(t);
-                        handler.setParameter(statement, i+1, o);
-                    }
-                    else{
-                        statement.setNull(i+1, Types.VARCHAR);
+                        handler.setParameter(statement, i + 1, o);
+                    } else {
+                        statement.setNull(i + 1, Types.VARCHAR);
                     }
                 }
-                try(var resultSet = statement.executeQuery()){
+                try (var resultSet = statement.executeQuery()) {
                     list = toListModel(resultSet, clazz);
                 }
             }
@@ -578,32 +628,37 @@ public abstract class Database implements IDatabase{
 
         return list;
     }
+
     /**
      * toMap
+     * 
      * @param resultSet ResultSet
      * @return Map
      * @throws Exception
      */
     private Map<String, Object> toMap(ResultSet resultSet) throws Exception {
         Map<String, Object> map = null;
-        if(resultSet.next()){
+        if (resultSet.next()) {
             var metaData = resultSet.getMetaData();
             var count = metaData.getColumnCount();
             map = new HashMap<String, Object>(count);
-            for(var i=0; i < count; i++){
-                var name = metaData.getColumnLabel(i+1);
-                var value = resultSet.getObject(i+1);
+            for (var i = 0; i < count; i++) {
+                var name = metaData.getColumnLabel(i + 1);
+                var value = resultSet.getObject(i + 1);
                 map.put(name, value);
             }
         }
 
         return map;
     }
+
     /**
      * query first Map&lt;String, Object&gt;
-     * @param sql select sql; param: ? or ${name} or #{name}
+     * 
+     * @param sql   select sql; param: ? or ${name} or #{name}
      * @param param select id, name from tb where id = ? param is Object[];
-     * select id, name from tb where id = ${id} param is model or Map&lt;String, Object&gt;
+     *              select id, name from tb where id = ${id} param is model or
+     *              Map&lt;String, Object&gt;
      * @return first Map&lt;String, Object&gt;
      * @throws Exception
      */
@@ -611,28 +666,26 @@ public abstract class Database implements IDatabase{
     public Map<String, Object> queryOneMap(String sql, Object... param) throws Exception {
         Map<String, Object> map = null;
         this.open();
-        if(param == null || param.length == 0){
-            try(var statement = this.connection.createStatement()){
-                try(var resultSet = statement.executeQuery(sql)){
+        if (param == null || param.length == 0) {
+            try (var statement = this.connection.createStatement()) {
+                try (var resultSet = statement.executeQuery(sql)) {
                     map = this.toMap(resultSet);
                 }
             }
-        }
-        else{
+        } else {
             var sqlparam = this.getParamInfo(sql, param);
-            try(var statement = this.connection.prepareStatement(sqlparam.sql)){
+            try (var statement = this.connection.prepareStatement(sqlparam.sql)) {
                 for (var i = 0; i < sqlparam.param.length; i++) {
                     var o = sqlparam.param[i];
-                    if(o != null){
+                    if (o != null) {
                         var t = o.getClass();
                         var handler = typeHandlerRegistry.getTypeHandler(t);
-                        handler.setParameter(statement, i+1, o);
-                    }
-                    else{
-                        statement.setNull(i+1, Types.VARCHAR);
+                        handler.setParameter(statement, i + 1, o);
+                    } else {
+                        statement.setNull(i + 1, Types.VARCHAR);
                     }
                 }
-                try(var resultSet = statement.executeQuery()){
+                try (var resultSet = statement.executeQuery()) {
                     map = this.toMap(resultSet);
                 }
             }
@@ -640,8 +693,10 @@ public abstract class Database implements IDatabase{
 
         return map;
     }
+
     /**
      * toListMap
+     * 
      * @param resultSet ResultSet
      * @return List Map
      * @throws Exception
@@ -650,11 +705,11 @@ public abstract class Database implements IDatabase{
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         var metaData = resultSet.getMetaData();
         var count = metaData.getColumnCount();
-        while(resultSet.next()){
+        while (resultSet.next()) {
             Map<String, Object> map = new HashMap<>(count);
-            for(var i=0; i<count; i++){
-                var name = metaData.getColumnLabel(i+1);
-                var value = resultSet.getObject(i+1);
+            for (var i = 0; i < count; i++) {
+                var name = metaData.getColumnLabel(i + 1);
+                var value = resultSet.getObject(i + 1);
                 map.put(name, value);
             }
             list.add(map);
@@ -662,11 +717,14 @@ public abstract class Database implements IDatabase{
 
         return list;
     }
+
     /**
      * query List Map&lt;String, Object&gt;
-     * @param sql select sql; param: ? or ${name} or #{name}
+     * 
+     * @param sql   select sql; param: ? or ${name} or #{name}
      * @param param select id, name from tb where id = ? param is Object[];
-     * select id, name from tb where id = ${id} param is model or Map&lt;String, Object&gt;
+     *              select id, name from tb where id = ${id} param is model or
+     *              Map&lt;String, Object&gt;
      * @return List Map String, Object
      * @throws Exception
      */
@@ -674,56 +732,55 @@ public abstract class Database implements IDatabase{
     public List<Map<String, Object>> queryListMap(String sql, Object... param) throws Exception {
         List<Map<String, Object>> list = null;
         this.open();
-        if(param == null || param.length == 0){
-            try(var statement = this.connection.createStatement()){
-                try(var resultSet = statement.executeQuery(sql)){
+        if (param == null || param.length == 0) {
+            try (var statement = this.connection.createStatement()) {
+                try (var resultSet = statement.executeQuery(sql)) {
                     list = this.toListMap(resultSet);
                 }
             }
-        }
-        else{
+        } else {
             var sqlparam = this.getParamInfo(sql, param);
-            try(var statement = this.connection.prepareStatement(sqlparam.sql)){
+            try (var statement = this.connection.prepareStatement(sqlparam.sql)) {
                 for (var i = 0; i < sqlparam.param.length; i++) {
                     var o = sqlparam.param[i];
-                    if(o != null){
+                    if (o != null) {
                         var t = o.getClass();
                         var handler = typeHandlerRegistry.getTypeHandler(t);
-                        handler.setParameter(statement, i+1, o);
-                    }
-                    else{
-                        statement.setNull(i+1, Types.VARCHAR);
+                        handler.setParameter(statement, i + 1, o);
+                    } else {
+                        statement.setNull(i + 1, Types.VARCHAR);
                     }
                 }
-                try(var resultSet = statement.executeQuery()){
+                try (var resultSet = statement.executeQuery()) {
                     list = this.toListMap(resultSet);
                 }
             }
         }
-        
+
         return list;
     }
+
     /**
      * getSelectSql
+     * 
      * @param clazz model.class
      * @param param where param
      * @return SqlParamInfo
      * @throws Exception
      */
-    private SqlParamInfo getSelectSql(Class<?> clazz, Map<String, Object> param)throws Exception{
+    private SqlParamInfo getSelectSql(Class<?> clazz, Map<String, Object> param) throws Exception {
         var fieldMap = this.getFieldMap(clazz);
         SqlParamInfo result = new SqlParamInfo();
         result.sql = "SELECT ";
         fieldMap.forEach((k, v) -> {
             result.sql = result.sql + this.encodeColumn(k) + ", ";
         });
-        result.sql = result.sql.substring(0, result.sql.length()-2);
+        result.sql = result.sql.substring(0, result.sql.length() - 2);
         result.sql = result.sql + " FROM " + this.encodeColumn(clazz.getSimpleName());
-        if(param != null && param.size() > 0)
-        {
+        if (param != null && param.size() > 0) {
             List<Object> arr = new ArrayList<>(param.size());
             result.sql = result.sql + " WHERE 1=1";
-            param.forEach((k,v) -> {
+            param.forEach((k, v) -> {
                 result.sql = result.sql + " AND " + this.encodeColumn(k) + " = ?";
                 arr.add(v);
             });
@@ -732,11 +789,13 @@ public abstract class Database implements IDatabase{
 
         return result;
     }
+
     /**
      * get first model
+     * 
      * @param <TModel> Model
-     * @param clazz TModel.class
-     * @param param  where param
+     * @param clazz    TModel.class
+     * @param param    where param
      * @return first Model
      * @throws Exception
      */
@@ -745,69 +804,68 @@ public abstract class Database implements IDatabase{
         this.checkModel(clazz);
         this.open();
         var sqlparam = this.getSelectSql(clazz, param);
-        if(sqlparam.param == null || sqlparam.param.length == 0){
-            try(var statement = this.connection.createStatement()){
-                try(var resultSet = statement.executeQuery(sqlparam.sql)){
+        if (sqlparam.param == null || sqlparam.param.length == 0) {
+            try (var statement = this.connection.createStatement()) {
+                try (var resultSet = statement.executeQuery(sqlparam.sql)) {
                     var m = this.toModel(resultSet, clazz);
                     return m;
                 }
             }
-        }
-        else{
-            try(var statement = this.connection.prepareStatement(sqlparam.sql)){
+        } else {
+            try (var statement = this.connection.prepareStatement(sqlparam.sql)) {
                 for (var i = 0; i < sqlparam.param.length; i++) {
                     var o = sqlparam.param[i];
-                    if(o != null){
+                    if (o != null) {
                         var t = o.getClass();
                         var handler = typeHandlerRegistry.getTypeHandler(t);
-                        handler.setParameter(statement, i+1, o);
-                    }
-                    else{
-                        statement.setNull(i+1, Types.VARCHAR);
+                        handler.setParameter(statement, i + 1, o);
+                    } else {
+                        statement.setNull(i + 1, Types.VARCHAR);
                     }
                 }
-                try(var resultSet = statement.executeQuery()){
+                try (var resultSet = statement.executeQuery()) {
                     var m = this.toModel(resultSet, clazz);
                     return m;
                 }
             }
         }
     }
+
     /**
      * get List model
+     * 
      * @param <TModel> Model
-     * @param clazz TModel.class
-     * @param param where param
-     * @return  List Model
+     * @param clazz    TModel.class
+     * @param param    where param
+     * @return List Model
      * @throws Exception
      */
     @Override
-    public <TModel extends Model> List<TModel> getList(Class<TModel> clazz, Map<String, Object> param) throws Exception {
+    public <TModel extends Model> List<TModel> getList(Class<TModel> clazz, Map<String, Object> param)
+            throws Exception {
         List<TModel> list = null;
         this.checkModel(clazz);
         this.open();
         var sqlparam = this.getSelectSql(clazz, param);
-        if(sqlparam.param == null || sqlparam.param.length == 0){
-            try(var statement = this.connection.createStatement()){
-                try(var resultSet = statement.executeQuery(sqlparam.sql)){
+        if (sqlparam.param == null || sqlparam.param.length == 0) {
+            try (var statement = this.connection.createStatement()) {
+                try (var resultSet = statement.executeQuery(sqlparam.sql)) {
                     list = this.toListModel(resultSet, clazz);
                 }
             }
-        }
-        else{
-            try(var statement = this.connection.prepareStatement(sqlparam.sql)){
+        } else {
+            try (var statement = this.connection.prepareStatement(sqlparam.sql)) {
                 for (var i = 0; i < sqlparam.param.length; i++) {
                     var o = sqlparam.param[i];
-                    if(o != null){
+                    if (o != null) {
                         var t = o.getClass();
                         var handler = typeHandlerRegistry.getTypeHandler(t);
-                        handler.setParameter(statement, i+1, o);
-                    }
-                    else{
-                        statement.setNull(i+1, Types.VARCHAR);
+                        handler.setParameter(statement, i + 1, o);
+                    } else {
+                        statement.setNull(i + 1, Types.VARCHAR);
                     }
                 }
-                try(var resultSet = statement.executeQuery()){
+                try (var resultSet = statement.executeQuery()) {
                     list = toListModel(resultSet, clazz);
                 }
             }
@@ -815,52 +873,57 @@ public abstract class Database implements IDatabase{
 
         return list;
     }
+
     /**
      * getInsertSql
+     * 
      * @param table table name
      * @param param insert param
      * @return SqlParamInfo
      * @throws Exception
      */
-    private SqlParamInfo getInsertSql(String table, Map<String, Object> param)throws Exception{
-        if(table == null || table.isEmpty()) throw new Exception("table is null!");
+    private SqlParamInfo getInsertSql(String table, Map<String, Object> param) throws Exception {
+        if (table == null || table.isEmpty())
+            throw new Exception("table is null!");
         SqlParamInfo m = new SqlParamInfo();
         m.sql = "INSERT INTO " + this.encodeColumn(table) + "(";
         List<Object> plist = new ArrayList<>(param.size());
         String vsql = "VALUES(";
-        for(Map.Entry<String, Object> kv: param.entrySet()) {
+        for (Map.Entry<String, Object> kv : param.entrySet()) {
             m.sql = m.sql + this.encodeColumn(kv.getKey()) + ", ";
             plist.add(kv.getValue());
             vsql = vsql + "?, ";
         }
-        m.sql = m.sql.substring(0, m.sql.length()-2) + ") " + vsql.substring(0, vsql.length()-2) + ");";
+        m.sql = m.sql.substring(0, m.sql.length() - 2) + ") " + vsql.substring(0, vsql.length() - 2) + ");";
         m.param = plist.toArray();
 
         return m;
     }
+
     /**
      * add row
+     * 
      * @param table table name
      * @param param insert param
      * @return int
      * @throws Exception
      */
     @Override
-    public int add(String table, Map<String, Object> param)throws Exception {
-        if(param == null || param.size() == 0) throw new Exception("param is null!");
+    public int add(String table, Map<String, Object> param) throws Exception {
+        if (param == null || param.size() == 0)
+            throw new Exception("param is null!");
         var sqlparam = this.getInsertSql(table, param);
         int result = 0;
         this.open();
-        try(var statement = this.connection.prepareStatement(sqlparam.sql)){
+        try (var statement = this.connection.prepareStatement(sqlparam.sql)) {
             for (var i = 0; i < sqlparam.param.length; i++) {
                 var o = sqlparam.param[i];
-                if(o != null){
+                if (o != null) {
                     var t = o.getClass();
                     var handler = typeHandlerRegistry.getTypeHandler(t);
-                    handler.setParameter(statement, i+1, o);
-                }
-                else{
-                    statement.setNull(i+1, Types.VARCHAR);
+                    handler.setParameter(statement, i + 1, o);
+                } else {
+                    statement.setNull(i + 1, Types.VARCHAR);
                 }
             }
             result = statement.executeUpdate();
@@ -868,51 +931,58 @@ public abstract class Database implements IDatabase{
 
         return result;
     }
+
     /**
-     * add model 
+     * add model
+     * 
      * @param <TModel> Model
-     * @param m model
-     * @param ignore ignore model property name
+     * @param m        model
+     * @param ignore   ignore model property name
      * @return int
      * @throws Exception
      */
     @Override
-    public <TModel extends Model> int add(TModel m, String[] ignore)throws Exception{
-        if(m == null) throw new Exception("m is null!");
+    public <TModel extends Model> int add(TModel m, String[] ignore) throws Exception {
+        if (m == null)
+            throw new Exception("m is null!");
         var clazz = m.getClass();
         var fieldMap = this.getFieldMap(clazz);
-        if(ignore!= null && ignore.length > 0) {
-            for(var i=0; i<ignore.length; i++){
+        if (ignore != null && ignore.length > 0) {
+            for (var i = 0; i < ignore.length; i++) {
                 fieldMap.remove(ignore[i]);
             }
         }
         Map<String, Object> param = new LinkedHashMap<>(fieldMap.size());
-        for(Map.Entry<String, Field> kv: fieldMap.entrySet()){
+        for (Map.Entry<String, Field> kv : fieldMap.entrySet()) {
             param.put(kv.getKey(), kv.getValue().get(m));
         }
 
         return this.add(clazz.getSimpleName(), param);
     }
+
     /**
      * getUpdateSql
-     * @param table table name
-     * @param setParam set param
+     * 
+     * @param table      table name
+     * @param setParam   set param
      * @param whereParam where param
      * @return SqlParamInfo
      * @throws Exception
      */
-    private SqlParamInfo getUpdateSql(String table, Map<String, Object> setParam, Map<String, Object> whereParam)throws Exception{
-        if(table == null || table.isEmpty()) throw new Exception("table is null!");
+    private SqlParamInfo getUpdateSql(String table, Map<String, Object> setParam, Map<String, Object> whereParam)
+            throws Exception {
+        if (table == null || table.isEmpty())
+            throw new Exception("table is null!");
         SqlParamInfo m = new SqlParamInfo();
         m.sql = "UPDATE " + this.encodeColumn(table) + " SET ";
-        List<Object> plist = new ArrayList<>(setParam.size() + (whereParam != null ?whereParam.size() : 0));
-        for(Map.Entry<String, Object> kv: setParam.entrySet()) {
+        List<Object> plist = new ArrayList<>(setParam.size() + (whereParam != null ? whereParam.size() : 0));
+        for (Map.Entry<String, Object> kv : setParam.entrySet()) {
             m.sql = m.sql + this.encodeColumn(kv.getKey()) + " = ?, ";
             plist.add(kv.getValue());
         }
-        m.sql = m.sql.substring(0, m.sql.length()-2) + " WHERE 1=1";
-        if(whereParam != null && whereParam.size() > 0) {
-            for(Map.Entry<String, Object> kv: whereParam.entrySet()) {
+        m.sql = m.sql.substring(0, m.sql.length() - 2) + " WHERE 1=1";
+        if (whereParam != null && whereParam.size() > 0) {
+            for (Map.Entry<String, Object> kv : whereParam.entrySet()) {
                 m.sql = m.sql + " AND " + this.encodeColumn(kv.getKey()) + " = ?";
                 plist.add(kv.getValue());
             }
@@ -921,30 +991,32 @@ public abstract class Database implements IDatabase{
 
         return m;
     }
+
     /**
      * update
-     * @param table table name
-     * @param setParam update param
+     * 
+     * @param table      table name
+     * @param setParam   update param
      * @param whereParam where param
      * @return int
      * @throws Exception
      */
     @Override
-    public int update(String table, Map<String, Object> setParam, Map<String, Object> whereParam)throws Exception{
-        if(setParam == null || setParam.size() == 0) throw new Exception("param is null!");
+    public int update(String table, Map<String, Object> setParam, Map<String, Object> whereParam) throws Exception {
+        if (setParam == null || setParam.size() == 0)
+            throw new Exception("param is null!");
         var sqlparam = this.getUpdateSql(table, setParam, whereParam);
         int result = 0;
         this.open();
-        try(var statement = this.connection.prepareStatement(sqlparam.sql)){
+        try (var statement = this.connection.prepareStatement(sqlparam.sql)) {
             for (var i = 0; i < sqlparam.param.length; i++) {
                 var o = sqlparam.param[i];
-                if(o != null){
+                if (o != null) {
                     var t = o.getClass();
                     var handler = typeHandlerRegistry.getTypeHandler(t);
-                    handler.setParameter(statement, i+1, o);
-                }
-                else{
-                    statement.setNull(i+1, Types.VARCHAR);
+                    handler.setParameter(statement, i + 1, o);
+                } else {
+                    statement.setNull(i + 1, Types.VARCHAR);
                 }
             }
             result = statement.executeUpdate();
@@ -952,38 +1024,44 @@ public abstract class Database implements IDatabase{
 
         return result;
     }
+
     /**
      * update
-     * @param <TModel>  Model
-     * @param clazz Model.class
-     * @param setParam update param
+     * 
+     * @param <TModel>   Model
+     * @param clazz      Model.class
+     * @param setParam   update param
      * @param whereParam where param
      * @return int
      * @throws Exception
      */
     @Override
-    public <TModel extends Model> int update(Class<TModel> clazz, Map<String, Object> setParam, Map<String, Object> whereParam)throws Exception{
-        if(clazz == null) throw new Exception("T class is null!");
+    public <TModel extends Model> int update(Class<TModel> clazz, Map<String, Object> setParam,
+            Map<String, Object> whereParam) throws Exception {
+        if (clazz == null)
+            throw new Exception("T class is null!");
         var table = clazz.getSimpleName();
 
         return this.update(table, setParam, whereParam);
     }
-    
+
     /**
      * getDeleteSql
-     * @param table table name
+     * 
+     * @param table      table name
      * @param whereParam where param
      * @return SqlParamInfo
      * @throws Exception
      */
-    private SqlParamInfo getDeleteSql(String table, Map<String, Object> whereParam)throws Exception{
-        if(table == null || table.isEmpty()) throw new Exception("table is null!");
+    private SqlParamInfo getDeleteSql(String table, Map<String, Object> whereParam) throws Exception {
+        if (table == null || table.isEmpty())
+            throw new Exception("table is null!");
         SqlParamInfo m = new SqlParamInfo();
         m.sql = "DELETE FROM " + this.encodeColumn(table) + " WHERE 1=1";
-        if(whereParam != null && whereParam.size() > 0){
-        List<Object> plist = new ArrayList<>(whereParam.size());
-        if(whereParam != null && whereParam.size() > 0) {
-                for(Map.Entry<String, Object> kv: whereParam.entrySet()) {
+        if (whereParam != null && whereParam.size() > 0) {
+            List<Object> plist = new ArrayList<>(whereParam.size());
+            if (whereParam != null && whereParam.size() > 0) {
+                for (Map.Entry<String, Object> kv : whereParam.entrySet()) {
                     m.sql = m.sql + " AND " + this.encodeColumn(kv.getKey()) + " = ?";
                     plist.add(kv.getValue());
                 }
@@ -993,29 +1071,31 @@ public abstract class Database implements IDatabase{
 
         return m;
     }
+
     /**
      * delete
-     * @param table table name
+     * 
+     * @param table      table name
      * @param whereParam where param
      * @return int
      * @throws Exception
      */
     @Override
-    public int delete(String table, Map<String, Object> whereParam) throws Exception{
-        if(table == null || table.isEmpty()) throw new Exception("table is null!");
+    public int delete(String table, Map<String, Object> whereParam) throws Exception {
+        if (table == null || table.isEmpty())
+            throw new Exception("table is null!");
         var sqlparam = this.getDeleteSql(table, whereParam);
         int result = 0;
         this.open();
-        try(var statement = this.connection.prepareStatement(sqlparam.sql)){
+        try (var statement = this.connection.prepareStatement(sqlparam.sql)) {
             for (var i = 0; i < sqlparam.param.length; i++) {
                 var o = sqlparam.param[i];
-                if(o != null){
+                if (o != null) {
                     var t = o.getClass();
                     var handler = typeHandlerRegistry.getTypeHandler(t);
-                    handler.setParameter(statement, i+1, o);
-                }
-                else{
-                    statement.setNull(i+1, Types.VARCHAR);
+                    handler.setParameter(statement, i + 1, o);
+                } else {
+                    statement.setNull(i + 1, Types.VARCHAR);
                 }
             }
             result = statement.executeUpdate();
@@ -1026,18 +1106,20 @@ public abstract class Database implements IDatabase{
 
     /**
      * delete
-     * @param <TModel> Model
-     * @param clazz Model.class
+     * 
+     * @param <TModel>   Model
+     * @param clazz      Model.class
      * @param whereParam where param
      * @return int
      * @throws Exception
      */
     @Override
-    public <TModel extends Model> int delete(Class<TModel> clazz, Map<String, Object> whereParam)throws Exception{
-        if(clazz == null) throw new Exception("T class is null!");
+    public <TModel extends Model> int delete(Class<TModel> clazz, Map<String, Object> whereParam) throws Exception {
+        if (clazz == null)
+            throw new Exception("T class is null!");
         var table = clazz.getSimpleName();
 
         return this.delete(table, whereParam);
     }
-    
+
 }
