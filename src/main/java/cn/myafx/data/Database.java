@@ -24,7 +24,7 @@ public abstract class Database implements IDatabase {
     private Boolean is_close = true;
 
     private final static int NOT_MODEL = Modifier.ABSTRACT | Modifier.STATIC | Modifier.FINAL | Modifier.STRICT;
-    private final static int NOT_FIELD = Modifier.STATIC | Modifier.FINAL | Modifier.TRANSIENT | Modifier.VOLATILE;
+    private final static int CLASS_FIELD = Modifier.PUBLIC | Modifier.PROTECTED | Modifier.PRIVATE;
     protected final static TypeHandlerRegistry typeHandlerRegistry;
     private final static ObjectFactory objectFactory;
     private final static List<Class<?>> baseTypeList;
@@ -144,12 +144,10 @@ public abstract class Database implements IDatabase {
             throw new Exception("not open!");
         this.connection.setAutoCommit(false);
         switch (level) {
-            case None:
-                this.connection.setTransactionIsolation(Connection.TRANSACTION_NONE);
-                break;
             case ReadUncommitted:
                 this.connection.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
                 break;
+            case None:
             case ReadCommitted:
                 this.connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
                 break;
@@ -267,15 +265,19 @@ public abstract class Database implements IDatabase {
      * @throws Exception
      */
     private Map<String, Field> getFieldMap(Class<?> clazz) throws Exception {
-        var arr = clazz.getDeclaredFields();
         Map<String, Field> fieldMap = new LinkedHashMap<>();
-        for (Field f : arr) {
-            var modifiers = f.getModifiers();
-            if ((modifiers & NOT_FIELD) == 0) {
-                fieldMap.put(f.getName(), f);
-                if (!Modifier.isPublic(modifiers))
-                    f.setAccessible(true);
+        var t = clazz;
+        while (!Object.class.equals(t)) {
+            var arr = t.getDeclaredFields();
+            for (Field f : arr) {
+                var modifiers = f.getModifiers();
+                if (modifiers == 0 || (modifiers & CLASS_FIELD) > 0) {
+                    fieldMap.put(f.getName(), f);
+                    if (!Modifier.isPublic(modifiers))
+                        f.setAccessible(true);
+                }
             }
+            t = t.getSuperclass();
         }
 
         if (fieldMap.size() == 0)
@@ -400,20 +402,9 @@ public abstract class Database implements IDatabase {
                     }
                 } else {
                     var t = o.getClass();
-                    var fields = t.getDeclaredFields();
-                    if (fields.length > 0) {
-                        fieldMap = new HashMap<>(fields.length);
-                        for (Field f : fields) {
-                            var modifiers = f.getModifiers();
-                            if ((modifiers & NOT_FIELD) == 0) {
-                                fieldMap.put(f.getName(), f);
-                                if (!Modifier.isPublic(modifiers))
-                                    f.setAccessible(true);
-                            }
-                        }
-                        if (fieldMap.size() > 0)
-                            paramtype = 2;
-                    }
+                    fieldMap = getFieldMap(t);
+                    if (fieldMap.size() > 0)
+                        paramtype = 2;
                 }
 
                 if (paramtype == 0)

@@ -3,7 +3,7 @@ package cn.myafx.data;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Application {
+public class App {
     public static void main(String[] args) throws Exception {
         try (var db = new MySqlDatabase(
                 "jdbc:mysql://127.0.0.1:3306/test?characterEncoding=utf8&characterSetResults=utf8", "admin",
@@ -24,7 +24,7 @@ public class Application {
             // db.delete(tb1.class, whereParam);
             // db.delete("tb1", whereParam);
             db.commit();
-            System.out.println(m.account);
+            System.out.println(m.getAccount());
             System.out.print("end...............");
         }
     }
