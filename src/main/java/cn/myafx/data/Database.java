@@ -791,7 +791,7 @@ public abstract class Database implements IDatabase {
      * @throws Exception
      */
     @Override
-    public <TModel extends Model> TModel get(Class<TModel> clazz, Map<String, Object> param) throws Exception {
+    public <TModel> TModel get(Class<TModel> clazz, Map<String, Object> param) throws Exception {
         this.checkModel(clazz);
         this.open();
         var sqlparam = this.getSelectSql(clazz, param);
@@ -832,7 +832,7 @@ public abstract class Database implements IDatabase {
      * @throws Exception
      */
     @Override
-    public <TModel extends Model> List<TModel> getList(Class<TModel> clazz, Map<String, Object> param)
+    public <TModel> List<TModel> getList(Class<TModel> clazz, Map<String, Object> param)
             throws Exception {
         List<TModel> list = null;
         this.checkModel(clazz);
@@ -933,7 +933,7 @@ public abstract class Database implements IDatabase {
      * @throws Exception
      */
     @Override
-    public <TModel extends Model> int add(TModel m, String[] ignore) throws Exception {
+    public <TModel> int add(TModel m, String[] ignore) throws Exception {
         if (m == null)
             throw new Exception("m is null!");
         var clazz = m.getClass();
@@ -1027,7 +1027,7 @@ public abstract class Database implements IDatabase {
      * @throws Exception
      */
     @Override
-    public <TModel extends Model> int update(Class<TModel> clazz, Map<String, Object> setParam,
+    public <TModel> int update(Class<TModel> clazz, Map<String, Object> setParam,
             Map<String, Object> whereParam) throws Exception {
         if (clazz == null)
             throw new Exception("T class is null!");
@@ -1105,7 +1105,7 @@ public abstract class Database implements IDatabase {
      * @throws Exception
      */
     @Override
-    public <TModel extends Model> int delete(Class<TModel> clazz, Map<String, Object> whereParam) throws Exception {
+    public <TModel> int delete(Class<TModel> clazz, Map<String, Object> whereParam) throws Exception {
         if (clazz == null)
             throw new Exception("T class is null!");
         var table = clazz.getSimpleName();

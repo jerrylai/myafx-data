@@ -2,7 +2,7 @@ package cn.myafx.data;
 
 import java.util.Date;
 
-public class tb1 implements Model {
+public class tb1 {
     private Integer id;
 
     public Integer getId() {
